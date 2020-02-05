@@ -6,9 +6,7 @@ import Router from "./routes";
 import "./firebase";
 function App() {
   return (
-    <div className="App">
-      <Router firebase={firebase}/>
-    </div>
+      <Router />
   );
 }
 
