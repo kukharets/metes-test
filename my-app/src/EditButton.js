@@ -22,7 +22,6 @@ const EditButton = ({type, id}) => {
   const startEdit = (e) => {
         console.log("se", this.mainRef.current.offset)
         this.setState({
-            open: !open,
         })
     };
     const onValueChange = (value) => {
@@ -32,7 +31,6 @@ const EditButton = ({type, id}) => {
     };
     return (
             <div ref={mainRef} onClick={startEdit} className='edit-button'>
-                {open && renderEditContainer({type, onValueChange: this.onValueChange, value})}
                 EDIT
             </div>
     )
