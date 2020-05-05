@@ -30,7 +30,13 @@
   color: white;
 }
 
+.button-wrapper {
+  position: relative;
+  height: 100%;
+}
+
 .nav-button {
+  position: relative;
   display: flex;
   font-weight: 500;
   cursor: pointer;
@@ -136,4 +142,33 @@
 .link-unstyled {
   text-decoration: none;
   color: unset;
+}
+
+.edit-button {
+  position: absolute;
+  font-size: 17px;
+  left: -47px;
+  top: -25px;
+  color: white;
+  padding: 0 5px;
+  background-color: rgba(18, 173, 220, 0.51);
+  border: 2px black solid;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.edit-container-text {
+  position: absolute;
+  min-width: 200px;
+  min-height: 50px;
+  background-color: white;
+  border: 2px black solid;
+  border-radius: 3px;
+  right: -147px;
+  top: -70px;
+  padding: 10px;
+}
+
+.textarea-edit {
+  resize: none;
 }

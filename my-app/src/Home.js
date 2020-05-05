@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import Dmat from './assets/Dmat.png';
 import Weather from './assets/Weather.png';
 import { Link } from "react-router-dom";
+import EditButton from "./EditButton";
 
 class Home extends React.Component{
     constructor(props){
@@ -43,12 +44,18 @@ class Home extends React.Component{
 
     };
     render() {
+        const admin = true;
         const {selected} = this.state;
         return (
             <div className='app'>
                 <div className='navigation'>
                     <div className='buttons'>
-                        <div onClick={() => {this.onButtonClick(1)}} className={`nav-button button-index-1 ${!selected || selected === 1 ? 'selected' : ''}`}><span>HELLO</span></div>
+                        <div className='button-wrapper'>
+                            {admin && <EditButton type='text' id={`nav_button_1`}/>}
+                            <div onClick={() => {this.onButtonClick(1)}} className={`nav-button button-index-1 ${!selected || selected === 1 ? 'selected' : ''}`}>
+                                <span>HELLO</span>
+                            </div>
+                        </div>
                         <div onClick={() => {this.onButtonClick(2)}} className={`nav-button  button-index-2 ${selected === 2 ? 'selected' : ''}`}><span>PORTFOLIO</span></div>
                         <div onClick={() => {this.onButtonClick(3)}} className={`nav-button button-index-3 ${selected === 3 ? 'selected' : ''}`}><span>CONTACT</span></div>
                     </div>
@@ -56,6 +63,7 @@ class Home extends React.Component{
                 <div className="content">
                     <div className='hello'>
                         <div className='content-title'>
+                            {admin && <EditButton type='text' id={`nav_button_1`}/>}
                             Taras Kukharets
                         </div>
                         <div className='hello-description'>
