@@ -1,89 +1,118 @@
 import React, { useEffect, useState } from "react";
 import firebase from "firebase";
 import { Box, Button, Paper, Typography } from "@material-ui/core";
-import { Edit } from "@material-ui/icons";
-import { makeStyles } from "@material-ui/core/styles";
+import { Edit, Add } from "@material-ui/icons";
 import TextField from "@material-ui/core/TextField/TextField";
 import SignIn from "./components/SignIn";
 import QuestionListItem from "./components/QuestionListItem";
-
-const useStyles = makeStyles(theme => ({
-  mainEditWindow: {
-    height: "100%",
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    positiom: "relative",
-    padding: "30px"
-  },
-  editWindowQuestionWrapper: {
-    height: "100%",
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "start",
-    justifyContent: "start",
-    padding: "10%"
-  },
-  editWindowQuestion: {
-    display: "flex",
-    flexDirection: "column",
-    padding: "25px",
-    alignItems: "start",
-    justifyContent: "center",
-    backgroundColor: "#efefef",
-    minWidth: "70%",
-    minHeight: "20%"
-  },
-  welcomeMessage: {
-    width: "100%"
-  },
-  sideBarList: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "row",
-    width: "200px"
-  },
-  subtitle: {
-    fontSize: "12px",
-    color: "gray"
-  },
-  flexRow: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center"
-  },
-  editBtn: {
-    height: "17px",
-    color: "blue",
-    cursor: "pointer"
-  },
-  submitButton: {
-    marginTop: "10px"
-  }
-}));
+import { useStyles } from "./components/styles";
+import QuestionEditItem from "./components/QuestionEditItem";
+import generateUuid from "./helpers/generateUuid";
+import SetSelector from "./components/SetSelector";
 
 export default function AdminPanel({ userData, setUserData }) {
   const classes = useStyles();
   const [editWelcomeOpenState, setEditWelcomeOpenState] = useState(false);
+  const [addEditQuestion, setAddEditQuestion] = useState(false);
   const [welcomeText, setWelcomeText] = useState("");
+  const [saveSetState, setSaveSetState] = useState(false);
+  const [localUuid, setLocalUuid] = useState("");
+  const [sets, setSets] = useState([]);
+  const [selectedSet, setSelectedSet] = React.useState({});
+  const [localQuestionsList, setLocalQuestionsList] = useState([]);
+
+  const getSets = async () => {
+    const snapshot = await firebase
+      .firestore()
+      .collection("sets")
+      .get();
+    setSets(snapshot.docs.map(doc => doc.data()));
+
+    // await firebase.firestore()
+    //   .collection("sets")
+    //   .get().then(res => {
+    //     res.forEach(element => {
+    //       element.ref.delete();
+    //     });
+    //   });
+  };
+
+  const handleAddEditSet = set => {
+    console.log(set);
+    const { uuid, title } = set;
+    if (!title) {
+      return;
+    }
+    const firestoreRef = firebase.firestore();
+    const collection = firestoreRef.collection("sets");
+    const uuidForSet = uuid || generateUuid();
+    collection
+      .doc(uuidForSet)
+      .set({ title, uuid: uuidForSet }, { merge: true })
+      .then(getSets());
+  };
+
+  const handleDeleteSet = set => {
+    const documentRef = firebase.firestore().doc(`sets/${set.uuid}`);
+
+    documentRef.delete().then(() => {
+      getSets();
+    });
+  };
 
   useEffect(() => {
-    const firestoreRef = firebase.firestore();
-    const collection = firestoreRef.collection("basic");
-    collection
-      .doc("welcomeMessage")
-      .get()
-      .then(doc => setWelcomeText(doc.data().message));
-  }, []);
+    if (userData.isAdmin) {
+      getSets();
+    }
+  }, [userData.isAdmin]);
+
+  useEffect(() => {
+    setWelcomeText(selectedSet.welcomeMessage);
+    setLocalQuestionsList(selectedSet.questions || []);
+  }, [selectedSet]);
 
   const swichEditWelcomeOpenState = () => {
     setEditWelcomeOpenState(!editWelcomeOpenState);
   };
 
+  const handleAddEditQuestions = data => {
+    setAddEditQuestion(data);
+  };
+
+  const onAddNewQuestion = (index) => {
+
+  };
+
   const submitWelcomeMessage = () => {
+    console.error(selectedSet);
+    const { uuid } = selectedSet;
+    if (uuid) {
+      const firestoreRef = firebase.firestore();
+      const collection = firestoreRef.collection("sets");
+      collection
+        .doc(uuid)
+        .set({ welcomeMessage: welcomeText }, { merge: true })
+        .then(() => {
+          setEditWelcomeOpenState(false);
+          getSets();
+        });
+    }
+  };
+
+  const submitAddEditQuestion = data => {
+    console.log(data)
+    const { uuid } = selectedSet;
+    if (uuid) {
+      const firestoreRef = firebase.firestore();
+      const collection = firestoreRef.collection("sets");
+      collection.doc(uuid).set({ questions: [data] }, { merge: true })
+    }
+
+  };
+
+  const addQuestion = () => {
     const firestoreRef = firebase.firestore();
-    const collection = firestoreRef.collection("basic");
+    const collection = firestoreRef.collection("questions");
     collection
       .doc("welcomeMessage")
       .set({ message: welcomeText }, { merge: true });
@@ -121,6 +150,14 @@ export default function AdminPanel({ userData, setUserData }) {
 
   return (
     <Box className="content">
+      <SetSelector
+        selectedSet={selectedSet}
+        handleSelectSet={setSelectedSet}
+        deleteSet={handleDeleteSet}
+        addEditSet={handleAddEditSet}
+        data={sets}
+        saveSetState={saveSetState}
+      />
       {!userData.isAdmin && <SignIn setUserData={setUserData} />}
       {userData.isAdmin && (
         <Box className={classes.mainEditWindow}>
@@ -128,23 +165,34 @@ export default function AdminPanel({ userData, setUserData }) {
             <Box>
               <Box className={classes.flexRow}>
                 <Typography className={classes.subtitle}>
-                  'Welcome Message'
+                  Welcome Message
                 </Typography>
                 <Edit
                   onClick={swichEditWelcomeOpenState}
                   className={classes.editBtn}
                 />
               </Box>
-              {welcomeText && (
-                <QuestionListItem question={welcomeText} />
-              )}
+              <QuestionListItem question={selectedSet.welcomeMessage} />
             </Box>
-            <Box></Box>
+            <Box className={classes.questionsList}>
+              <Box className={classes.flexRow}>
+                <Typography className={classes.subtitle}>
+                  Questions List
+                </Typography>
+                <Add
+                  onClick={handleAddEditQuestions}
+                  className={classes.editBtn}
+                />
+                {localQuestionsList.map((question, index) => (
+                  <QuestionListItem onAddNewQuestion={onAddNewQuestion} index={index} question={question.question} />
+                ))}
+              </Box>
+            </Box>
             <Box></Box>
           </Box>
           {editWelcomeOpenState && (
             <Box className={classes.editWindowQuestionWrapper}>
-              <Box className={classes.editWindowQuestion}>
+              <Box className={classes.editWindowItemWrapper}>
                 <TextField
                   value={welcomeText}
                   onChange={e => setWelcomeText(e.target.value)}
@@ -154,6 +202,7 @@ export default function AdminPanel({ userData, setUserData }) {
                   {welcomeText}
                 </TextField>
                 <Button
+                  sizeSmall
                   onClick={submitWelcomeMessage}
                   className={classes.submitButton}
                   variant="contained"
@@ -163,6 +212,9 @@ export default function AdminPanel({ userData, setUserData }) {
                 </Button>
               </Box>
             </Box>
+          )}
+          {addEditQuestion && (
+            <QuestionEditItem onSubmit={submitAddEditQuestion} />
           )}
         </Box>
       )}
