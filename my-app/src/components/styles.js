@@ -93,6 +93,9 @@ export const useStyles = makeStyles(theme => ({
     cursor: "pointer"
   },
   submitButton: {
+    marginRight: '10px'
+  },
+  editControls: {
     marginTop: "10px",
     position: "absolute",
     right: "5px",

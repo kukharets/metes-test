@@ -2,23 +2,28 @@ import { Box, Button } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 
 import TextField from "@material-ui/core/TextField/TextField";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useStyles } from "./styles";
 import generateUuid from "../helpers/generateUuid";
 
-export default function QuestionEditItem({ data = {}, onSubmit }) {
+export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit }) {
   const classes = useStyles();
-  const { questionText, answersList, uuid } = data;
-
-  const [questionTextLocal, setQuestionTextLocal] = useState(questionText);
-  const [answersListLocal, setAnswersListLocal] = useState(answersList || [{}]);
+  const { question, answers, uuid, index, isExisted } = data;
+  const [questionTextLocal, setQuestionTextLocal] = useState(question);
+  const [answersListLocal, setAnswersListLocal] = useState(answers || [{}]);
   const [uuidLocal, setUuidLocal] = useState(uuid || generateUuid());
   const handleSubmit = () => {
-    onSubmit({question: questionTextLocal, answers: answersListLocal})
+    const data = {question: questionTextLocal, answers: answersListLocal}
+    onSubmit({data, index: index || 0, isExisted})
   };
 
+  useEffect(() => {
+    const {question, answers, uuid, index, isExisted} = data;
+    setQuestionTextLocal(question);
+    setAnswersListLocal(answers)
+  }, [data])
+
   const addNewAnswer = index => {
-    console.error(index);
     const newAnsersListLocal = [...answersListLocal];
     newAnsersListLocal.splice(index + 1, 0, { answerText: "" });
     setAnswersListLocal(newAnsersListLocal);
@@ -204,14 +209,23 @@ export default function QuestionEditItem({ data = {}, onSubmit }) {
             </Box>
           </Box>
         ))}
-        <Button
-          onClick={handleSubmit}
-          className={classes.submitButton}
-          variant="contained"
-          color="primary"
-        >
-          Save
-        </Button>
+        <Box className={classes.editControls}>
+          <Button
+            onClick={handleCancelEdit}
+            className={classes.submitButton}
+            variant="contained"
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color="primary"
+          >
+            Save
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
