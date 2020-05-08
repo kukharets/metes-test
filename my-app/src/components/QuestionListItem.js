@@ -1,5 +1,5 @@
 import { Box, Typography } from "@material-ui/core";
-import { ArrowDropUp, ArrowDropDown, Add } from "@material-ui/icons";
+import { ArrowDropUp, ArrowDropDown, Add, Delete } from "@material-ui/icons";
 
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
@@ -34,7 +34,7 @@ const useStyles = makeStyles(() => ({
     minHeight: "30px",
     maxHeight: "30px",
     position: "absolute",
-    right: "-70px",
+    right: "-98px",
     top: "-2px"
   },
   icon: {
@@ -49,6 +49,7 @@ export default function QuestionListItem({
   data,
   index,
   onAddNewQuestion,
+  onDeleteQuestion,
   moveTo,
   withControls
 }) {
@@ -77,6 +78,14 @@ export default function QuestionListItem({
             className={classes.icon}
             onClick={e => {
               onAddNewQuestion({ data: {}, index: index + 1 });
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          />
+          <Delete
+            className={classes.icon}
+            onClick={e => {
+              onDeleteQuestion(index);
               e.preventDefault();
               e.stopPropagation();
             }}

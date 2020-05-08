@@ -208,12 +208,27 @@ export default function AdminPanel({
         collection
           .doc(uuid)
           .set({ questions: newLocalQuestionsList }, { merge: true })
-          .then(res => {
-            console.log("res", res);
+          .then(() => {
             setChangePositionState(false);
             updateSet();
           });
       }
+    }
+  };
+
+  const handleQuestionDelete = (index) => {
+    const newLocalQuestionsList = [...localQuestionsList];
+    newLocalQuestionsList.splice(index, 1);
+    const { uuid } = selectedSet;
+    if (uuid) {
+      const firestoreRef = firebase.firestore();
+      const collection = firestoreRef.collection("sets");
+      collection
+        .doc(uuid)
+        .set({ questions: newLocalQuestionsList }, { merge: true })
+        .then(() => {
+          updateSet();
+        });
     }
   };
 
@@ -264,6 +279,7 @@ export default function AdminPanel({
               {localQuestionsList.map((question, index) => (
                 <Box key={`question${index}`}>
                   <QuestionListItem
+                    onDeleteQuestion={handleQuestionDelete}
                     handleClick={() =>
                       handleAddEditQuestions({
                         data: question,
