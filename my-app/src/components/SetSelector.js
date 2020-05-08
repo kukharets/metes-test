@@ -65,9 +65,9 @@ export default function SetSelector({
     if (data.length > 0) {
       setAddEditSetState(false);
       setLocalSets(data);
-      !selectedSet.uuid && setSelectedSet(data[data.length - 1]);
+      setSelectedSet(data[data.length - 1]);
     }
-  }, [data, selectedSet, selectedSet.uuid]);
+  }, [data]);
 
   const handleChangeSelectedSet = e => {
     setSelectedSet(localSets.find(set => set.uuid === e.target.value));

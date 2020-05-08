@@ -33,7 +33,7 @@ export default function Routes({
           />
         </Route>
         <Route exact path="/">
-          <Home />
+          <Home selectedSet={selectedSet} />
         </Route>
       </Switch>
     </Router>
