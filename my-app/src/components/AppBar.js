@@ -3,7 +3,7 @@ import { useLocation, useHistory, Link } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import { fade, makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 
 const useStyles = makeStyles(theme => ({
@@ -29,7 +29,6 @@ export default function AppBarHeader({
   selectedSet,
   getSetRequest
 }) {
-  console.warn("selected!!!", selectedSet);
   const [selectedSetUuid, setSelectedSetUuid] = useState("");
   const classes = useStyles();
   const { isAdmin } = userData;
@@ -39,13 +38,15 @@ export default function AppBarHeader({
   const { search, pathname } = location;
 
   useEffect(() => {
-    console.warn("selected!!!!!", selectedSet, location, history);
-
-    if (selectedSet && selectedSet.uuid && (selectedSet.uuid != selectedSetUuid)) {
+    if (
+      selectedSet &&
+      selectedSet.uuid &&
+      selectedSet.uuid !== selectedSetUuid
+    ) {
       setSelectedSetUuid(selectedSet.uuid);
       history.push(`${pathname}?selectedSet=${selectedSet.uuid}`);
     }
-  }, selectedSet.uuid);
+  }, [selectedSet.uuid, selectedSetUuid, selectedSet, history, pathname]);
 
   if (search) {
     const parts = search.split("=");
@@ -70,7 +71,6 @@ export default function AppBarHeader({
                 to={selectedSetUuid ? `/?selectedSet=${selectedSetUuid}` : "/"}
                 className={classes.subtitle}
                 variant="h7"
-                noWrap
               >
                 Home
               </Link>
@@ -86,13 +86,12 @@ export default function AppBarHeader({
                 }
                 className={classes.subtitle}
                 variant="h7"
-                noWrap
               >
                 Admin
               </Link>
             </Box>
           )}
-          <Typography className={classes.title} variant="h6" noWrap>
+          <Typography className={classes.title} variant="h6">
             Questionnaire
           </Typography>
           {userData.isAdmin && (
@@ -100,7 +99,6 @@ export default function AppBarHeader({
               onClick={logout}
               className={classes.subtitle}
               variant="h6"
-              noWrap
             >
               Logout
             </Typography>

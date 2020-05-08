@@ -4,9 +4,9 @@ import { ArrowDropUp, ArrowDropDown, Add } from "@material-ui/icons";
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   questionListItem: {
-    cursor: 'pointer',
+    cursor: "pointer",
     minHeight: "30px",
     maxHeight: "30px",
     width: "100%",
@@ -18,9 +18,9 @@ const useStyles = makeStyles(theme => ({
     flexDirection: "row",
     alignItems: "center",
     position: "relative",
-    '&:hover': {
+    "&:hover": {
       width: "110%",
-      marginLeft: '-10%'
+      marginLeft: "-10%"
     }
   },
   question: {
@@ -50,7 +50,7 @@ export default function QuestionListItem({
   index,
   onAddNewQuestion,
   moveTo,
-  withControls,
+  withControls
 }) {
   const { question } = data;
   const classes = useStyles();

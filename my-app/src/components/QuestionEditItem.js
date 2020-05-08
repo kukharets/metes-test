@@ -2,27 +2,29 @@ import { Box, Button } from "@material-ui/core";
 import { Delete } from "@material-ui/icons";
 
 import TextField from "@material-ui/core/TextField/TextField";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useStyles } from "./styles";
-import generateUuid from "../helpers/generateUuid";
 
-export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit }) {
+export default function QuestionEditItem({
+  data = {},
+  onSubmit,
+  handleCancelEdit
+}) {
   const classes = useStyles();
-  const { question, answers = [{}], uuid, index, isExisted } = data;
-  console.warn('QuestionEditItem question, answers, uuid, index, isExisted',question, answers, uuid, index, isExisted)
+  const { question, answers = [{}],  index, isExisted } = data;
   const [questionTextLocal, setQuestionTextLocal] = useState(question);
   const [answersListLocal, setAnswersListLocal] = useState(answers);
-  const [uuidLocal, setUuidLocal] = useState(uuid || generateUuid());
+
   const handleSubmit = () => {
-    const data = {question: questionTextLocal, answers: answersListLocal}
-    onSubmit({data, index: index || 0, isExisted})
+    const data = { question: questionTextLocal, answers: answersListLocal };
+    onSubmit({ data, index: index || 0, isExisted });
   };
 
   useEffect(() => {
-    const {question, answers = [], uuid, index, isExisted} = data;
+    const { question, answers = [] } = data;
     setQuestionTextLocal(question);
-    setAnswersListLocal(answers)
-  }, [data])
+    setAnswersListLocal(answers);
+  }, [data]);
 
   const addNewAnswer = index => {
     const newAnsersListLocal = [...answersListLocal];
@@ -79,8 +81,6 @@ export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit
     newAnsersListLocal[index].deathMessageText = value;
     setAnswersListLocal(newAnsersListLocal);
   };
-
-  console.log(answersListLocal)
 
   return (
     <Box className={classes.editWindowQuestionWrapper}>
@@ -219,11 +219,7 @@ export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleSubmit} variant="contained" color="primary">
             Save
           </Button>
         </Box>

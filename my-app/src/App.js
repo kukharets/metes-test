@@ -3,15 +3,16 @@ import "./App.css";
 import firebase from "firebase";
 import Router from "./routes";
 import "./firebase";
-import AppBarHeader from "./components/AppBar";
 
 function App() {
   const [userData, setUserData] = useState({});
-  const [selectedSet, setSelectedSet] = React.useState({});
+  const [selectedSet, setSelectedSet] = useState({});
+  const [userLoading, setUserLoading] = useState(true);
+
   useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
+      setUserLoading(false);
       if (user) {
-        console.error("!!!");
         setUserData({ isAdmin: true });
       }
     });
@@ -31,6 +32,7 @@ function App() {
   return (
     <div className="App">
       <Router
+        userLoading={userLoading}
         getSetRequest={getSetRequest}
         selectedSet={selectedSet}
         setSelectedSet={setSelectedSet}

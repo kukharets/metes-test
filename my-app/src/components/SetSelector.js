@@ -1,13 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import { Box, Button, TextField } from "@material-ui/core";
 import { Add, Delete, Edit } from "@material-ui/icons";
-import generateUuid from "../helpers/generateUuid";
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -47,69 +45,62 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function SetSelector({ disabled, data, addEditSet, deleteSet,saveSetState, handleSelectSet, selectedSet }) {
+export default function SetSelector({
+  disabled,
+  data,
+  addEditSet,
+  deleteSet,
+  handleSelectSet,
+  selectedSet
+}) {
   const classes = useStyles();
-  const [localSets, setLocalSets] = React.useState(data);
-  const [addEditSetState, setAddEditSetState] = React.useState(false);
-  const [selectedSetTitle, setSelectedSetTitle] = React.useState("");
-  const [editSetState, setEditSetState] = React.useState(false);
+  const [localSets, setLocalSets] = useState(data);
+  const [addEditSetState, setAddEditSetState] = useState(false);
 
-  console.error('SS SS', selectedSet)
-
-  const setSelectedSet = (data) => {
+  const setSelectedSet = data => {
     handleSelectSet(data);
-  }
+  };
 
   React.useEffect(() => {
     if (data.length > 0) {
       setAddEditSetState(false);
       setLocalSets(data);
-      console.warn('data', data)
       !selectedSet.uuid && setSelectedSet(data[data.length - 1]);
     }
-
-  }, [data]);
-
+  }, [data, selectedSet, selectedSet.uuid]);
 
   const handleChangeSelectedSet = e => {
     setSelectedSet(localSets.find(set => set.uuid === e.target.value));
   };
 
   const handleChangeSetTitle = value => {
-    console.warn("handleChangeSetTitle", value);
     const newSelectedSet = { ...selectedSet };
     newSelectedSet.title = value;
     setSelectedSet(newSelectedSet);
   };
 
-  const handleSubmitSet = event => {
+  const handleSubmitSet = () => {
     addEditSet(selectedSet);
   };
 
-  const handleDeleteSet = set => {
-    deleteSet(set);
-  };
-
-  console.warn("SETS", selectedSet.uuid, localSets, selectedSet);
-
   return (
     <Box className={classes.selectAddSet}>
-      {selectedSet.uuid &&
-      <FormControl className={classes.formControl}>
-        <InputLabel id="demo-simple-select-label">Sets</InputLabel>
-        <Select
-          disabled={disabled}
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={selectedSet.uuid}
-          onChange={handleChangeSelectedSet}
-        >
-          {localSets.map(set => (
-            <MenuItem value={set.uuid}>{set.title}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      }
+      {selectedSet.uuid && (
+        <FormControl className={classes.formControl}>
+          <InputLabel id="demo-simple-select-label">Sets</InputLabel>
+          <Select
+            disabled={!!disabled}
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={selectedSet.uuid}
+            onChange={handleChangeSelectedSet}
+          >
+            {localSets.map(set => (
+              <MenuItem key={`menu-item${set.uuid}`} value={set.uuid}>{set.title}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
       <Box className={classes.controls}>
         {!addEditSetState && !disabled && (
           <Add
@@ -146,7 +137,6 @@ export default function SetSelector({ disabled, data, addEditSet, deleteSet,save
             {selectedSet.title}
           </TextField>
           <Button
-            sizeSmall
             onClick={handleSubmitSet}
             className={classes.submitButton}
             variant="contained"
@@ -155,7 +145,6 @@ export default function SetSelector({ disabled, data, addEditSet, deleteSet,save
             Save
           </Button>
           <Button
-            sizeSmall
             onClick={() => {
               setAddEditSetState(false);
               setSelectedSet(localSets[0]);

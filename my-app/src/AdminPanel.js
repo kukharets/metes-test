@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import firebase from "firebase";
-import { Box, Button, Paper, Typography } from "@material-ui/core";
-import { Edit, Add } from "@material-ui/icons";
+import { Box, Button, Typography, CircularProgress } from "@material-ui/core";
+import { Add } from "@material-ui/icons";
 import TextField from "@material-ui/core/TextField/TextField";
 import SignIn from "./components/SignIn";
 import QuestionListItem from "./components/QuestionListItem";
@@ -10,9 +10,14 @@ import QuestionEditItem from "./components/QuestionEditItem";
 import generateUuid from "./helpers/generateUuid";
 import SetSelector from "./components/SetSelector";
 
-export default function AdminPanel({ userData, setUserData, selectedSet, setSelectedSet }) {
+export default function AdminPanel({
+  userData,
+  setUserData,
+  selectedSet,
+  setSelectedSet,
+  userLoading
+}) {
   const classes = useStyles();
-  // const [selectedSet, setSelectedSet] = React.useState({});
 
   const [editWelcomeOpenState, setEditWelcomeOpenState] = useState(false);
   const [editSuccessOpenState, setEditSuccessOpenState] = useState(false);
@@ -22,18 +27,24 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
   const [deathMessage, setDeathText] = useState("");
   const [successMessage, setSuccessText] = useState("");
 
-
   const [addEditQuestion, setAddEditQuestion] = useState(false);
 
-  const [saveSetState, setSaveSetState] = useState(false);
-  const [localUuid, setLocalUuid] = useState("");
   const [sets, setSets] = useState([]);
   const [localQuestionsList, setLocalQuestionsList] = useState([]);
   const [changePositionState, setChangePositionState] = useState(false);
-  console.warn("ADMIN PANEL selectedSet", selectedSet);
 
-  console.warn("ADMIN PANEL addEditQuestion", addEditQuestion);
-  console.warn("ADMIN PANEL localQuestionsList", localQuestionsList);
+  useEffect(() => {
+    if (userData.isAdmin) {
+      getSets();
+    }
+  }, [userData.isAdmin]);
+
+  useEffect(() => {
+    setWelcomeText(selectedSet.welcomeMessage);
+    setDeathText(selectedSet.deathMessage);
+    setSuccessText(selectedSet.successMessage);
+    setLocalQuestionsList(selectedSet.questions || []);
+  }, [selectedSet]);
 
   const getSets = async () => {
     const snapshot = await firebase
@@ -53,7 +64,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
         const newSet = res.data();
         const currentLocalSets = [...sets];
         const foundIndex = currentLocalSets.findIndex(
-          x => x.uuid == newSet.uuid
+          x => x.uuid === newSet.uuid
         );
         currentLocalSets[foundIndex] = newSet;
         setSets(currentLocalSets);
@@ -62,7 +73,6 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
   };
 
   const handleAddEditSet = set => {
-    console.log(set);
     const { uuid, title } = set;
     if (!title) {
       return;
@@ -78,51 +88,31 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
 
   const handleDeleteSet = set => {
     const documentRef = firebase.firestore().doc(`sets/${set.uuid}`);
-
     documentRef.delete().then(() => {
       getSets();
       setSelectedSet(false);
     });
   };
 
-  useEffect(() => {
-    if (userData.isAdmin) {
-      getSets();
-    }
-  }, [userData.isAdmin]);
-
-  useEffect(() => {
-    console.log("UPDATE", selectedSet)
-    setWelcomeText(selectedSet.welcomeMessage);
-    setDeathText(selectedSet.deathMessage);
-    setSuccessText(selectedSet.successMessage);
-
-    setLocalQuestionsList(selectedSet.questions || []);
-  }, [selectedSet]);
-
-  const swichEditWelcomeOpenState = () => {
+  const switchEditWelcomeOpenState = () => {
     setEditWelcomeOpenState(!editWelcomeOpenState);
   };
 
-  const swichEditDeathOpenState = () => {
+  const switchEditDeathOpenState = () => {
     setEditDeathOpenState(!editDeathOpenState);
   };
 
-  const swichEditSuccessOpenState = () => {
+  const switchEditSuccessOpenState = () => {
     setEditSuccessOpenState(!editSuccessOpenState);
   };
 
   const handleAddEditQuestions = ({ index, data, isExisted }) => {
-    console.error("handleAddEditQuestions", index, data);
     setAddEditQuestion({ index, ...data, isExisted });
   };
 
   const cancelQuestEdit = () => {
-    console.warn("cancelQuestEdit");
     setAddEditQuestion(false);
   };
-
-  const onAddNewQuestion = index => {};
 
   const submitWelcomeMessage = () => {
     console.error(selectedSet);
@@ -147,7 +137,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
       const collection = firestoreRef.collection("sets");
       collection
         .doc(uuid)
-        .set({ successMessage: successMessage }, { merge: true })
+        .set({ successMessage }, { merge: true })
         .then(() => {
           setEditSuccessOpenState(false);
           updateSet();
@@ -162,7 +152,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
       const collection = firestoreRef.collection("sets");
       collection
         .doc(uuid)
-        .set({ deathMessage: deathMessage }, { merge: true })
+        .set({ deathMessage }, { merge: true })
         .then(() => {
           setEditDeathOpenState(false);
           updateSet();
@@ -184,7 +174,6 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
 
   const submitAddEditQuestion = ({ data, index, isExisted }) => {
     const newLocalQuestionsList = [...localQuestionsList];
-    console.error("submitAddEditQuestion", data, index, isExisted);
     if (isExisted) {
       newLocalQuestionsList[index] = data;
     } else {
@@ -202,7 +191,6 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
           updateSet();
           setAddEditQuestion(false);
         });
-      //      collection.doc(uuid).set({...selectedSet, questions: newLocalQuestionsList }).then(getSets())
     }
   };
 
@@ -213,7 +201,6 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
       const targetItem = newLocalQuestionsList[to];
       newLocalQuestionsList[to] = data;
       newLocalQuestionsList[from] = targetItem;
-      console.error("handleChangePosition", newLocalQuestionsList);
       const { uuid } = selectedSet;
       if (uuid) {
         const firestoreRef = firebase.firestore();
@@ -230,45 +217,11 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
     }
   };
 
-  const addQuestion = () => {
-    const firestoreRef = firebase.firestore();
-    const collection = firestoreRef.collection("questions");
-    collection
-      .doc("welcomeMessage")
-      .set({ message: welcomeText }, { merge: true });
-  };
-
-  const editData = () => {
-    const firestoreRef = firebase.firestore();
-
-    const collection = firestoreRef.collection("basic");
-    const document1 = collection.doc("docrules");
-
-    document1
-      .update({
-        question: "What is your age?",
-        state: "CA1112",
-        country: "USA"
-      })
-      .catch(e => console.warn(e));
-  };
-
-  const addData = () => {
-    const firestoreRef = firebase.firestore();
-
-    const collection = firestoreRef.collection("basic");
-
-    collection
-      .doc("Question2")
-      .set({
-        name: "Los Angeles245",
-        state: "CA",
-        country: "USA"
-      })
-      .catch((e, data) => console.log(data, e.message));
-  };
-
-  const editInProcess = editDeathOpenState || editSuccessOpenState || editWelcomeOpenState || addEditQuestion;
+  const editInProcess =
+    editDeathOpenState ||
+    editSuccessOpenState ||
+    editWelcomeOpenState ||
+    addEditQuestion;
 
   return (
     <Box className="content">
@@ -279,9 +232,11 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
         deleteSet={handleDeleteSet}
         addEditSet={handleAddEditSet}
         data={sets}
-        saveSetState={saveSetState}
       />
-      {!userData.isAdmin && <SignIn setUserData={setUserData} />}
+      {!userData.isAdmin && !userLoading && (
+        <SignIn setUserData={setUserData} />
+      )}
+      {userLoading && <CircularProgress />}
       {userData.isAdmin && (
         <Box className={classes.mainEditWindow}>
           <Box className={classes.sideBarList}>
@@ -292,7 +247,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
                 </Typography>
               </Box>
               <QuestionListItem
-                onAddNewQuestion={swichEditWelcomeOpenState}
+                onAddNewQuestion={switchEditWelcomeOpenState}
                 data={{ question: selectedSet.welcomeMessage }}
               />
             </Box>
@@ -307,20 +262,22 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
                 />
               </Box>
               {localQuestionsList.map((question, index) => (
-                <QuestionListItem
-                  handleClick={() =>
-                    handleAddEditQuestions({
-                      data: question,
-                      index,
-                      isExisted: true
-                    })
-                  }
-                  moveTo={handleChangePosition}
-                  withControls={!addEditQuestion && !changePositionState}
-                  onAddNewQuestion={handleAddEditQuestions}
-                  index={index}
-                  data={question}
-                />
+                <Box key={`question${index}`}>
+                  <QuestionListItem
+                    handleClick={() =>
+                      handleAddEditQuestions({
+                        data: question,
+                        index,
+                        isExisted: true
+                      })
+                    }
+                    moveTo={handleChangePosition}
+                    withControls={!addEditQuestion && !changePositionState}
+                    onAddNewQuestion={handleAddEditQuestions}
+                    index={index}
+                    data={question}
+                  />
+                </Box>
               ))}
             </Box>
             <Box className={classes.lastMessages}>
@@ -331,7 +288,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
                   </Typography>
                 </Box>
                 <QuestionListItem
-                  onAddNewQuestion={swichEditSuccessOpenState}
+                  onAddNewQuestion={switchEditSuccessOpenState}
                   data={{ question: selectedSet.successMessage }}
                 />
               </Box>
@@ -342,7 +299,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
                   </Typography>
                 </Box>
                 <QuestionListItem
-                  onAddNewQuestion={swichEditDeathOpenState}
+                  onAddNewQuestion={switchEditDeathOpenState}
                   data={{ question: selectedSet.deathMessage }}
                 />
               </Box>
@@ -352,7 +309,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
             <Box className={classes.editWindowQuestionWrapper}>
               <Box className={classes.editWindowItemWrapper}>
                 <TextField
-                  label='Welcome message'
+                  label="Welcome message"
                   value={welcomeText}
                   onChange={e => setWelcomeText(e.target.value)}
                   multiline
@@ -384,7 +341,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
             <Box className={classes.editWindowQuestionWrapper}>
               <Box className={classes.editWindowItemWrapper}>
                 <TextField
-                  label='Success message'
+                  label="Success message"
                   value={successMessage}
                   onChange={e => setSuccessText(e.target.value)}
                   multiline
@@ -416,7 +373,7 @@ export default function AdminPanel({ userData, setUserData, selectedSet, setSele
             <Box className={classes.editWindowQuestionWrapper}>
               <Box className={classes.editWindowItemWrapper}>
                 <TextField
-                  label='Death message'
+                  label="Death message"
                   value={deathMessage}
                   onChange={e => setDeathText(e.target.value)}
                   multiline
