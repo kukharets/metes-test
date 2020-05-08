@@ -21,10 +21,10 @@ export default function AdminPanel({ userData, setUserData }) {
   const [selectedSet, setSelectedSet] = React.useState({});
   const [localQuestionsList, setLocalQuestionsList] = useState([]);
   const [changePositionState, setChangePositionState] = useState(false);
+  console.warn("ADMIN PANEL selectedSet", selectedSet);
 
-
-  console.warn("ADMIN PANEL addEditQuestion", addEditQuestion)
-  console.warn("ADMIN PANEL localQuestionsList", localQuestionsList)
+  console.warn("ADMIN PANEL addEditQuestion", addEditQuestion);
+  console.warn("ADMIN PANEL localQuestionsList", localQuestionsList);
 
   const getSets = async () => {
     const snapshot = await firebase
@@ -32,6 +32,22 @@ export default function AdminPanel({ userData, setUserData }) {
       .collection("sets")
       .get();
     setSets(snapshot.docs.map(doc => doc.data()));
+  };
+
+  const updateSet = async () => {
+    await firebase
+      .firestore()
+      .collection("sets")
+      .doc(selectedSet.uuid)
+      .get()
+      .then(res => {
+        const newSet = res.data();
+        const currentLocalSets = [...sets];
+        const foundIndex = currentLocalSets.findIndex(x => x.uuid == newSet.uuid);
+        currentLocalSets[foundIndex] = newSet;
+        setSets(currentLocalSets);
+        setSelectedSet(newSet);
+      });
   };
 
   const handleAddEditSet = set => {
@@ -72,19 +88,17 @@ export default function AdminPanel({ userData, setUserData }) {
     setEditWelcomeOpenState(!editWelcomeOpenState);
   };
 
-  const handleAddEditQuestions = ({index, data, isExisted}) => {
-    console.error('handleAddEditQuestions', index, data)
-    setAddEditQuestion({index, ...data, isExisted});
+  const handleAddEditQuestions = ({ index, data, isExisted }) => {
+    console.error("handleAddEditQuestions", index, data);
+    setAddEditQuestion({ index, ...data, isExisted });
   };
 
   const cancelQuestEdit = () => {
-    console.warn('cancelQuestEdit')
+    console.warn("cancelQuestEdit");
     setAddEditQuestion(false);
   };
 
-  const onAddNewQuestion = (index) => {
-
-  };
+  const onAddNewQuestion = index => {};
 
   const submitWelcomeMessage = () => {
     console.error(selectedSet);
@@ -97,14 +111,14 @@ export default function AdminPanel({ userData, setUserData }) {
         .set({ welcomeMessage: welcomeText }, { merge: true })
         .then(() => {
           setEditWelcomeOpenState(false);
-          getSets();
+          updateSet();
         });
     }
   };
 
-  const submitAddEditQuestion = ({data, index, isExisted}) => {
+  const submitAddEditQuestion = ({ data, index, isExisted }) => {
     const newLocalQuestionsList = [...localQuestionsList];
-    console.error('submitAddEditQuestion', data, index, isExisted)
+    console.error("submitAddEditQuestion", data, index, isExisted);
     if (isExisted) {
       newLocalQuestionsList[index] = data;
     } else {
@@ -115,31 +129,40 @@ export default function AdminPanel({ userData, setUserData }) {
     if (uuid) {
       const firestoreRef = firebase.firestore();
       const collection = firestoreRef.collection("sets");
-      collection.doc(uuid).set({ questions: newLocalQuestionsList }, {merge: true}).then(() => {getSets(); setAddEditQuestion(false)})
-  //      collection.doc(uuid).set({...selectedSet, questions: newLocalQuestionsList }).then(getSets())
-
+      collection
+        .doc(uuid)
+        .set({ questions: newLocalQuestionsList }, { merge: true })
+        .then(() => {
+          updateSet();
+          setAddEditQuestion(false);
+        });
+      //      collection.doc(uuid).set({...selectedSet, questions: newLocalQuestionsList }).then(getSets())
     }
   };
 
-  const handleChangePosition = ({data, from, to}) => {
-    if (to > 0 && to < localQuestionsList.length - 1) {
+  const handleChangePosition = ({ data, from, to }) => {
+    if (to >= 0 && to < localQuestionsList.length) {
       setChangePositionState(true);
       const newLocalQuestionsList = [...localQuestionsList];
       const targetItem = newLocalQuestionsList[to];
       newLocalQuestionsList[to] = data;
       newLocalQuestionsList[from] = targetItem;
-      console.error('handleChangePosition', newLocalQuestionsList)
+      console.error("handleChangePosition", newLocalQuestionsList);
       const { uuid } = selectedSet;
       if (uuid) {
         const firestoreRef = firebase.firestore();
         const collection = firestoreRef.collection("sets");
-        collection.doc(uuid).set({ questions: newLocalQuestionsList }, {merge: true}).then((res) => {
-          console.log('res', res, )
-          setChangePositionState(false); getSets()})
+        collection
+          .doc(uuid)
+          .set({ questions: newLocalQuestionsList }, { merge: true })
+          .then(res => {
+            console.log("res", res);
+            setChangePositionState(false);
+            updateSet();
+          });
       }
     }
-
-  }
+  };
 
   const addQuestion = () => {
     const firestoreRef = firebase.firestore();
@@ -203,7 +226,9 @@ export default function AdminPanel({ userData, setUserData }) {
                   className={classes.editBtn}
                 />
               </Box>
-              <QuestionListItem data={{question: selectedSet.welcomeMessage}} />
+              <QuestionListItem
+                data={{ question: selectedSet.welcomeMessage }}
+              />
             </Box>
             <Box className={classes.questionsList}>
               <Box className={classes.flexRow}>
@@ -211,12 +236,25 @@ export default function AdminPanel({ userData, setUserData }) {
                   Questions List
                 </Typography>
                 <Add
-                  onClick={() => handleAddEditQuestions({index: 0})}
+                  onClick={() => handleAddEditQuestions({ index: 0 })}
                   className={classes.editBtn}
                 />
               </Box>
               {localQuestionsList.map((question, index) => (
-                <QuestionListItem handleClick={() => handleAddEditQuestions({data: question, index, isExisted: true})} moveTo={handleChangePosition} withControls={!addEditQuestion && !changePositionState} onAddNewQuestion={handleAddEditQuestions} index={index} data={question} />
+                <QuestionListItem
+                  handleClick={() =>
+                    handleAddEditQuestions({
+                      data: question,
+                      index,
+                      isExisted: true
+                    })
+                  }
+                  moveTo={handleChangePosition}
+                  withControls={!addEditQuestion && !changePositionState}
+                  onAddNewQuestion={handleAddEditQuestions}
+                  index={index}
+                  data={question}
+                />
               ))}
             </Box>
             <Box></Box>
@@ -245,7 +283,11 @@ export default function AdminPanel({ userData, setUserData }) {
             </Box>
           )}
           {addEditQuestion && (
-            <QuestionEditItem  handleCancelEdit={cancelQuestEdit} data={addEditQuestion} onSubmit={submitAddEditQuestion} />
+            <QuestionEditItem
+              handleCancelEdit={cancelQuestEdit}
+              data={addEditQuestion}
+              onSubmit={submitAddEditQuestion}
+            />
           )}
         </Box>
       )}

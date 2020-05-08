@@ -8,9 +8,10 @@ import generateUuid from "../helpers/generateUuid";
 
 export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit }) {
   const classes = useStyles();
-  const { question, answers, uuid, index, isExisted } = data;
+  const { question, answers = [{}], uuid, index, isExisted } = data;
+  console.warn('QuestionEditItem question, answers, uuid, index, isExisted',question, answers, uuid, index, isExisted)
   const [questionTextLocal, setQuestionTextLocal] = useState(question);
-  const [answersListLocal, setAnswersListLocal] = useState(answers || [{}]);
+  const [answersListLocal, setAnswersListLocal] = useState(answers);
   const [uuidLocal, setUuidLocal] = useState(uuid || generateUuid());
   const handleSubmit = () => {
     const data = {question: questionTextLocal, answers: answersListLocal}
@@ -18,7 +19,7 @@ export default function QuestionEditItem({ data = {}, onSubmit, handleCancelEdit
   };
 
   useEffect(() => {
-    const {question, answers, uuid, index, isExisted} = data;
+    const {question, answers = [], uuid, index, isExisted} = data;
     setQuestionTextLocal(question);
     setAnswersListLocal(answers)
   }, [data])

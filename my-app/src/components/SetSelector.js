@@ -54,6 +54,8 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
   const [selectedSetTitle, setSelectedSetTitle] = React.useState("");
   const [editSetState, setEditSetState] = React.useState(false);
 
+  console.error('SS SS', selectedSet)
+
   const setSelectedSet = (data) => {
     handleSelectSet(data);
   }
@@ -63,14 +65,14 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
       setAddEditSetState(false);
       setLocalSets(data);
       console.warn('data', data)
-      setSelectedSet(data[data.length - 1]);
+      !selectedSet.uuid && setSelectedSet(data[data.length - 1]);
     }
 
   }, [data]);
 
 
   const handleChangeSelectedSet = e => {
-    setSelectedSet(e.target.value);
+    setSelectedSet(localSets.find(set => set.uuid === e.target.value));
   };
 
   const handleChangeSetTitle = value => {
@@ -88,23 +90,25 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
     deleteSet(set);
   };
 
-  console.warn("SETS", localSets, selectedSet);
+  console.warn("SETS", selectedSet.uuid, localSets, selectedSet);
 
   return (
     <Box className={classes.selectAddSet}>
+      {selectedSet.uuid &&
       <FormControl className={classes.formControl}>
         <InputLabel id="demo-simple-select-label">Sets</InputLabel>
         <Select
           labelId="demo-simple-select-label"
           id="demo-simple-select"
-          value={selectedSet}
+          value={selectedSet.uuid}
           onChange={handleChangeSelectedSet}
         >
-          {data.map(set => (
-            <MenuItem value={set}>{set.title}</MenuItem>
+          {localSets.map(set => (
+            <MenuItem value={set.uuid}>{set.title}</MenuItem>
           ))}
         </Select>
       </FormControl>
+      }
       <Box className={classes.controls}>
         {!addEditSetState && (
           <Add
