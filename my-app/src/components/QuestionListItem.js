@@ -51,7 +51,6 @@ export default function QuestionListItem({
   onAddNewQuestion,
   moveTo,
   withControls,
-  handleClick
 }) {
   const { question } = data;
   const classes = useStyles();

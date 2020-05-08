@@ -10,15 +10,24 @@ import QuestionEditItem from "./components/QuestionEditItem";
 import generateUuid from "./helpers/generateUuid";
 import SetSelector from "./components/SetSelector";
 
-export default function AdminPanel({ userData, setUserData }) {
+export default function AdminPanel({ userData, setUserData, selectedSet, setSelectedSet }) {
   const classes = useStyles();
+  // const [selectedSet, setSelectedSet] = React.useState({});
+
   const [editWelcomeOpenState, setEditWelcomeOpenState] = useState(false);
-  const [addEditQuestion, setAddEditQuestion] = useState(false);
+  const [editSuccessOpenState, setEditSuccessOpenState] = useState(false);
+  const [editDeathOpenState, setEditDeathOpenState] = useState(false);
+
   const [welcomeText, setWelcomeText] = useState("");
+  const [deathMessage, setDeathText] = useState("");
+  const [successMessage, setSuccessText] = useState("");
+
+
+  const [addEditQuestion, setAddEditQuestion] = useState(false);
+
   const [saveSetState, setSaveSetState] = useState(false);
   const [localUuid, setLocalUuid] = useState("");
   const [sets, setSets] = useState([]);
-  const [selectedSet, setSelectedSet] = React.useState({});
   const [localQuestionsList, setLocalQuestionsList] = useState([]);
   const [changePositionState, setChangePositionState] = useState(false);
   console.warn("ADMIN PANEL selectedSet", selectedSet);
@@ -43,7 +52,9 @@ export default function AdminPanel({ userData, setUserData }) {
       .then(res => {
         const newSet = res.data();
         const currentLocalSets = [...sets];
-        const foundIndex = currentLocalSets.findIndex(x => x.uuid == newSet.uuid);
+        const foundIndex = currentLocalSets.findIndex(
+          x => x.uuid == newSet.uuid
+        );
         currentLocalSets[foundIndex] = newSet;
         setSets(currentLocalSets);
         setSelectedSet(newSet);
@@ -70,6 +81,7 @@ export default function AdminPanel({ userData, setUserData }) {
 
     documentRef.delete().then(() => {
       getSets();
+      setSelectedSet(false);
     });
   };
 
@@ -80,12 +92,24 @@ export default function AdminPanel({ userData, setUserData }) {
   }, [userData.isAdmin]);
 
   useEffect(() => {
+    console.log("UPDATE", selectedSet)
     setWelcomeText(selectedSet.welcomeMessage);
+    setDeathText(selectedSet.deathMessage);
+    setSuccessText(selectedSet.successMessage);
+
     setLocalQuestionsList(selectedSet.questions || []);
   }, [selectedSet]);
 
   const swichEditWelcomeOpenState = () => {
     setEditWelcomeOpenState(!editWelcomeOpenState);
+  };
+
+  const swichEditDeathOpenState = () => {
+    setEditDeathOpenState(!editDeathOpenState);
+  };
+
+  const swichEditSuccessOpenState = () => {
+    setEditSuccessOpenState(!editSuccessOpenState);
   };
 
   const handleAddEditQuestions = ({ index, data, isExisted }) => {
@@ -114,6 +138,48 @@ export default function AdminPanel({ userData, setUserData }) {
           updateSet();
         });
     }
+  };
+
+  const submitSuccessMessage = () => {
+    const { uuid } = selectedSet;
+    if (uuid) {
+      const firestoreRef = firebase.firestore();
+      const collection = firestoreRef.collection("sets");
+      collection
+        .doc(uuid)
+        .set({ successMessage: successMessage }, { merge: true })
+        .then(() => {
+          setEditSuccessOpenState(false);
+          updateSet();
+        });
+    }
+  };
+
+  const submitDeathMessage = () => {
+    const { uuid } = selectedSet;
+    if (uuid) {
+      const firestoreRef = firebase.firestore();
+      const collection = firestoreRef.collection("sets");
+      collection
+        .doc(uuid)
+        .set({ deathMessage: deathMessage }, { merge: true })
+        .then(() => {
+          setEditDeathOpenState(false);
+          updateSet();
+        });
+    }
+  };
+
+  const handleCancelEditWelcomeMessage = () => {
+    setEditWelcomeOpenState(false);
+  };
+
+  const handleCancelEditSuccessMessage = () => {
+    setEditSuccessOpenState(false);
+  };
+
+  const handleCancelEditDeathMessage = () => {
+    setEditDeathOpenState(false);
   };
 
   const submitAddEditQuestion = ({ data, index, isExisted }) => {
@@ -202,9 +268,12 @@ export default function AdminPanel({ userData, setUserData }) {
       .catch((e, data) => console.log(data, e.message));
   };
 
+  const editInProcess = editDeathOpenState || editSuccessOpenState || editWelcomeOpenState || addEditQuestion;
+
   return (
     <Box className="content">
       <SetSelector
+        disabled={editInProcess}
         selectedSet={selectedSet}
         handleSelectSet={setSelectedSet}
         deleteSet={handleDeleteSet}
@@ -221,12 +290,9 @@ export default function AdminPanel({ userData, setUserData }) {
                 <Typography className={classes.subtitle}>
                   Welcome Message
                 </Typography>
-                <Edit
-                  onClick={swichEditWelcomeOpenState}
-                  className={classes.editBtn}
-                />
               </Box>
               <QuestionListItem
+                onAddNewQuestion={swichEditWelcomeOpenState}
                 data={{ question: selectedSet.welcomeMessage }}
               />
             </Box>
@@ -257,12 +323,36 @@ export default function AdminPanel({ userData, setUserData }) {
                 />
               ))}
             </Box>
-            <Box></Box>
+            <Box className={classes.lastMessages}>
+              <Box>
+                <Box className={classes.flexRow}>
+                  <Typography className={classes.subtitle}>
+                    Success Message
+                  </Typography>
+                </Box>
+                <QuestionListItem
+                  onAddNewQuestion={swichEditSuccessOpenState}
+                  data={{ question: selectedSet.successMessage }}
+                />
+              </Box>
+              <Box>
+                <Box className={classes.flexRow}>
+                  <Typography className={classes.subtitle}>
+                    Death Message
+                  </Typography>
+                </Box>
+                <QuestionListItem
+                  onAddNewQuestion={swichEditDeathOpenState}
+                  data={{ question: selectedSet.deathMessage }}
+                />
+              </Box>
+            </Box>
           </Box>
           {editWelcomeOpenState && (
             <Box className={classes.editWindowQuestionWrapper}>
               <Box className={classes.editWindowItemWrapper}>
                 <TextField
+                  label='Welcome message'
                   value={welcomeText}
                   onChange={e => setWelcomeText(e.target.value)}
                   multiline
@@ -270,15 +360,87 @@ export default function AdminPanel({ userData, setUserData }) {
                 >
                   {welcomeText}
                 </TextField>
-                <Button
-                  sizeSmall
-                  onClick={submitWelcomeMessage}
-                  className={classes.submitButton}
-                  variant="contained"
-                  color="primary"
+                <Box className={classes.editControls}>
+                  <Button
+                    onClick={handleCancelEditWelcomeMessage}
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={submitWelcomeMessage}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Save
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          )}
+          {editSuccessOpenState && (
+            <Box className={classes.editWindowQuestionWrapper}>
+              <Box className={classes.editWindowItemWrapper}>
+                <TextField
+                  label='Success message'
+                  value={successMessage}
+                  onChange={e => setSuccessText(e.target.value)}
+                  multiline
+                  className={classes.welcomeMessage}
                 >
-                  Save
-                </Button>
+                  {successMessage}
+                </TextField>
+                <Box className={classes.editControls}>
+                  <Button
+                    onClick={handleCancelEditSuccessMessage}
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={submitSuccessMessage}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Save
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          )}
+          {editDeathOpenState && (
+            <Box className={classes.editWindowQuestionWrapper}>
+              <Box className={classes.editWindowItemWrapper}>
+                <TextField
+                  label='Death message'
+                  value={deathMessage}
+                  onChange={e => setDeathText(e.target.value)}
+                  multiline
+                  className={classes.welcomeMessage}
+                >
+                  {deathMessage}
+                </TextField>
+                <Box className={classes.editControls}>
+                  <Button
+                    onClick={handleCancelEditDeathMessage}
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={submitDeathMessage}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Save
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}

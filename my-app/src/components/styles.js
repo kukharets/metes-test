@@ -39,6 +39,11 @@ export const useStyles = makeStyles(theme => ({
     width: "100%",
     marginBottom: "20px"
   },
+  lastMessages: {
+    position: "relative",
+    width: "100%",
+    marginTop: "20px"
+  },
   addNewAnswerButton: {
     fontSize: "9px",
     marginRight: "20px"
@@ -93,7 +98,7 @@ export const useStyles = makeStyles(theme => ({
     cursor: "pointer"
   },
   submitButton: {
-    marginRight: '10px'
+    marginRight: "10px"
   },
   editControls: {
     marginTop: "10px",

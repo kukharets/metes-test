@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useHistory, Link } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -23,25 +23,55 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function AppBarHeader({ userData, setUserData }) {
+export default function AppBarHeader({
+  userData,
+  setUserData,
+  selectedSet,
+  getSetRequest
+}) {
+  console.warn("selected!!!", selectedSet);
+  const [selectedSetUuid, setSelectedSetUuid] = useState("");
   const classes = useStyles();
   const { isAdmin } = userData;
-  const location = useLocation();
   const history = useHistory();
+  const location = useLocation();
   const isAdminPanel = location.pathname === "/admin-x";
+  const { search, pathname } = location;
+
+  useEffect(() => {
+    console.warn("selected!!!!!", selectedSet, location, history);
+
+    if (selectedSet && selectedSet.uuid && (selectedSet.uuid != selectedSetUuid)) {
+      setSelectedSetUuid(selectedSet.uuid);
+      history.push(`${pathname}?selectedSet=${selectedSet.uuid}`);
+    }
+  }, selectedSet.uuid);
+
+  if (search) {
+    const parts = search.split("=");
+    if (parts.length > 1 && parts[1] !== selectedSetUuid) {
+      getSetRequest(parts[1]);
+    }
+  }
 
   const logout = () => {
     indexedDB.deleteDatabase("firebaseLocalStorageDb");
     history.push("/");
     setUserData({});
   };
+
   return (
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
           {isAdmin && isAdminPanel && (
             <Box>
-              <Link to="/" className={classes.subtitle} variant="h7" noWrap>
+              <Link
+                to={selectedSetUuid ? `/?selectedSet=${selectedSetUuid}` : "/"}
+                className={classes.subtitle}
+                variant="h7"
+                noWrap
+              >
                 Home
               </Link>
             </Box>
@@ -49,7 +79,11 @@ export default function AppBarHeader({ userData, setUserData }) {
           {isAdmin && !isAdminPanel && (
             <Box>
               <Link
-                to="/admin-x"
+                to={
+                  selectedSetUuid
+                    ? `/admin-x?selectedSet=${selectedSetUuid}`
+                    : "/admin-x"
+                }
                 className={classes.subtitle}
                 variant="h7"
                 noWrap

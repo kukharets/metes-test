@@ -7,6 +7,7 @@ import AppBarHeader from "./components/AppBar";
 
 function App() {
   const [userData, setUserData] = useState({});
+  const [selectedSet, setSelectedSet] = React.useState({});
   useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
@@ -16,9 +17,23 @@ function App() {
     });
   }, []);
 
+  const getSetRequest = async (uuid) => {
+    await firebase
+      .firestore()
+      .collection("sets")
+      .doc(uuid)
+      .get()
+      .then(res => {
+        setSelectedSet(res.data());
+      });
+  };
+
   return (
     <div className="App">
       <Router
+        getSetRequest={getSetRequest}
+        selectedSet={selectedSet}
+        setSelectedSet={setSelectedSet}
         setUserData={setUserData}
         userData={userData}
         firebase={firebase}

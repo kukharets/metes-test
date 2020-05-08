@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, handleSelectSet, selectedSet }) {
+export default function SetSelector({ disabled, data, addEditSet, deleteSet,saveSetState, handleSelectSet, selectedSet }) {
   const classes = useStyles();
   const [localSets, setLocalSets] = React.useState(data);
   const [addEditSetState, setAddEditSetState] = React.useState(false);
@@ -98,6 +98,7 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
       <FormControl className={classes.formControl}>
         <InputLabel id="demo-simple-select-label">Sets</InputLabel>
         <Select
+          disabled={disabled}
           labelId="demo-simple-select-label"
           id="demo-simple-select"
           value={selectedSet.uuid}
@@ -110,7 +111,7 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
       </FormControl>
       }
       <Box className={classes.controls}>
-        {!addEditSetState && (
+        {!addEditSetState && !disabled && (
           <Add
             onClick={() => {
               setSelectedSet({});
@@ -119,13 +120,13 @@ export default function SetSelector({ data, addEditSet, deleteSet,saveSetState, 
             className={classes.editBtn}
           />
         )}
-        {!addEditSetState && selectedSet && selectedSet.uuid && (
+        {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
           <Edit
             onClick={() => setAddEditSetState(true)}
             className={classes.editBtn}
           />
         )}
-        {!addEditSetState && selectedSet && selectedSet.uuid && (
+        {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
           <Delete
             onClick={() => deleteSet(selectedSet)}
             className={classes.editBtn}
