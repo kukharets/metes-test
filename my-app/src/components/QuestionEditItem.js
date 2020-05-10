@@ -88,12 +88,12 @@ export default function QuestionEditItem({
         <Box className={classes.editWindowQuestion}>
           <TextField
             label="Question"
-            value={questionTextLocal}
+            value={questionTextLocal || ''}
             onChange={e => setQuestionTextLocal(e.target.value)}
             multiline
             className={classes.welcomeMessage}
           >
-            {questionTextLocal}
+            {questionTextLocal || ''}
           </TextField>
           <Box className={classes.answerEditSubMenu}>
             <Button
@@ -111,21 +111,21 @@ export default function QuestionEditItem({
           <Box key={`answer-${index}`} className={classes.answerEditField}>
             <TextField
               label={`Answer ${index + 1}`}
-              value={answer.answerText}
+              value={answer.answerText || ''}
               onChange={e =>
                 handleChangeAnswerText({ value: e.target.value, index })
               }
               multiline
               className={classes.welcomeMessage}
             >
-              {answer.answerText}
+              {answer.answerText || ''}
             </TextField>
             {answer.conditionMessage && (
               <Box className={classes.conditionMessageContainer}>
                 <TextField
                   fullWidth
                   label={`Success message for answer ${index + 1}`}
-                  value={answer.lastMessageText}
+                  value={answer.lastMessageText || ''}
                   onChange={e =>
                     handleChangeLastMessageText({
                       value: e.target.value,
@@ -135,7 +135,7 @@ export default function QuestionEditItem({
                   multiline
                   className={classes.conditionMessage}
                 >
-                  {answer.lastMessageText}
+                  {answer.lastMessageText || ''}
                 </TextField>
                 <Delete
                   onClick={() => deleteLastMessage(index)}
@@ -148,7 +148,7 @@ export default function QuestionEditItem({
                 <TextField
                   fullWidth
                   label={`Death message for answer ${index + 1}`}
-                  value={answer.deathMessageText}
+                  value={answer.deathMessageText || ''}
                   onChange={e =>
                     handleChangeDeathMessageText({
                       value: e.target.value,
@@ -158,7 +158,7 @@ export default function QuestionEditItem({
                   multiline
                   className={classes.conditionMessage}
                 >
-                  {answer.deathMessageText}
+                  {answer.deathMessageText || ''}
                 </TextField>
                 <Delete
                   onClick={() => deleteDeathMessage(index)}

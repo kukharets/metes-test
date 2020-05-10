@@ -6,6 +6,7 @@ import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles(() => ({
   questionListItem: {
+    marginTop: '5px',
     cursor: "pointer",
     minHeight: "30px",
     maxHeight: "30px",
@@ -24,7 +25,7 @@ const useStyles = makeStyles(() => ({
     }
   },
   question: {
-    fontSize: "10px",
+    fontSize: "13px",
     textOverflow: "hidden"
   },
   controls: {
@@ -34,14 +35,15 @@ const useStyles = makeStyles(() => ({
     minHeight: "30px",
     maxHeight: "30px",
     position: "absolute",
-    right: "-98px",
+    right: "-118px",
     top: "-2px"
   },
   icon: {
-    color: "blue",
+    color: 'gray',
     cursor: "pointer",
+    marginRight: '5px',
     "&:hover": {
-      color: "lightblue"
+      color: "blue"
     }
   }
 }));
@@ -63,7 +65,7 @@ export default function QuestionListItem({
       }}
       className={classes.questionListItem}
     >
-      <Typography className={classes.question}>{question}</Typography>
+      <Typography noWrap className={classes.question}>{question}</Typography>
       {withControls && (
         <Box className={classes.controls}>
           <ArrowDropUp

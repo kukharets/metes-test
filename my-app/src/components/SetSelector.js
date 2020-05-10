@@ -24,10 +24,6 @@ const useStyles = makeStyles(theme => ({
     right: "30px",
     top: "0"
   },
-  editBtn: {
-    color: "blue",
-    cursor: "pointer"
-  },
   addEditField: {
     display: "flex",
     justifyContent: "center",
@@ -35,6 +31,7 @@ const useStyles = makeStyles(theme => ({
     flexDirection: "row"
   },
   controls: {
+    marginTop: "15px",
     display: "flex",
     justifyContent: "start",
     alignItems: "center",
@@ -42,6 +39,14 @@ const useStyles = makeStyles(theme => ({
   },
   submitButton: {
     marginRight: "10px"
+  },
+  icon: {
+    color: "gray",
+    cursor: "pointer",
+    marginRight: "5px",
+    "&:hover": {
+      color: "blue"
+    }
   }
 }));
 
@@ -51,7 +56,8 @@ export default function SetSelector({
   addEditSet,
   deleteSet,
   handleSelectSet,
-  selectedSet
+  selectedSet,
+  withoutControls
 }) {
   const classes = useStyles();
   const [localSets, setLocalSets] = useState(data);
@@ -67,6 +73,7 @@ export default function SetSelector({
       setLocalSets(data);
       setSelectedSet(data[data.length - 1]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const handleChangeSelectedSet = e => {
@@ -96,34 +103,38 @@ export default function SetSelector({
             onChange={handleChangeSelectedSet}
           >
             {localSets.map(set => (
-              <MenuItem key={`menu-item${set.uuid}`} value={set.uuid}>{set.title}</MenuItem>
+              <MenuItem key={`menu-item${set.uuid}`} value={set.uuid}>
+                {set.title}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
       )}
-      <Box className={classes.controls}>
-        {!addEditSetState && !disabled && (
-          <Add
-            onClick={() => {
-              setSelectedSet({});
-              setAddEditSetState(true);
-            }}
-            className={classes.editBtn}
-          />
-        )}
-        {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
-          <Edit
-            onClick={() => setAddEditSetState(true)}
-            className={classes.editBtn}
-          />
-        )}
-        {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
-          <Delete
-            onClick={() => deleteSet(selectedSet)}
-            className={classes.editBtn}
-          />
-        )}
-      </Box>
+      {!withoutControls && (
+        <Box className={classes.controls}>
+          {!addEditSetState && !disabled && (
+            <Add
+              onClick={() => {
+                setSelectedSet({});
+                setAddEditSetState(true);
+              }}
+              className={classes.icon}
+            />
+          )}
+          {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
+            <Edit
+              onClick={() => setAddEditSetState(true)}
+              className={classes.icon}
+            />
+          )}
+          {!addEditSetState && selectedSet && selectedSet.uuid && !disabled && (
+            <Delete
+              onClick={() => deleteSet(selectedSet)}
+              className={classes.icon}
+            />
+          )}
+        </Box>
+      )}
       {addEditSetState && (
         <Box className={classes.addEditField}>
           <TextField

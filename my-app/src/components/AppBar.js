@@ -19,7 +19,8 @@ const useStyles = makeStyles(theme => ({
   },
   subtitle: {
     color: "white",
-    cursor: "pointer"
+    cursor: "pointer",
+    marginRight: "10px"
   }
 }));
 
@@ -35,6 +36,7 @@ export default function AppBarHeader({
   const history = useHistory();
   const location = useLocation();
   const isAdminPanel = location.pathname === "/admin-x";
+  const isResults = location.pathname === "/results";
   const { search, pathname } = location;
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function AppBarHeader({
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
-          {isAdmin && isAdminPanel && (
+          {isAdmin && (isAdminPanel || isResults) && (
             <Box>
               <Link
                 to={selectedSetUuid ? `/?selectedSet=${selectedSetUuid}` : "/"}
@@ -88,6 +90,21 @@ export default function AppBarHeader({
                 variant="h7"
               >
                 Admin
+              </Link>
+            </Box>
+          )}
+          {isAdmin && !isResults && (
+            <Box>
+              <Link
+                to={
+                  selectedSetUuid
+                    ? `/results?selectedSet=${selectedSetUuid}`
+                    : "/results"
+                }
+                className={classes.subtitle}
+                variant="h7"
+              >
+                Results
               </Link>
             </Box>
           )}

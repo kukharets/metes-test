@@ -67,6 +67,7 @@ export const useStyles = makeStyles(theme => ({
     width: "100%"
   },
   conditionMessageContainer: {
+    marginTop: "10px",
     position: "relative",
     paddingLeft: "50px"
   },
@@ -108,5 +109,11 @@ export const useStyles = makeStyles(theme => ({
   },
   questionsList: {
     marginTop: "10px"
+  },
+  datePicker: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "start",
+    marginBottom: "10px"
   }
 }));

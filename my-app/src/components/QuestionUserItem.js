@@ -55,6 +55,7 @@ export function QuestionUserItem({ data, doneData, index, onSubmit, onBack }) {
       }
     });
     setCheckeds(newChecked);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doneData]);
 
   const checkItem = index => {
